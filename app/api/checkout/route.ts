@@ -41,7 +41,7 @@ export async function POST(req: Request) {
               name: 'Curs Video AI: De la Zero la Expert',
               description: 'Acces complet + Factură fiscală',
             },
-            unit_amount: 25000, 
+            unit_amount: 10, 
           },
           quantity: 1,
         },
