@@ -1,37 +1,55 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
 
-// Inițializăm Stripe cu versiunea corectă cerută de TypeScript
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-11-17.clover', 
+  apiVersion: '2025-11-17.clover',
 });
 
 export async function POST(req: Request) {
   try {
-    // Definim URL-ul de bază (localhost sau producție)
+    const body = await req.json();
+    const { email, nume, prenume, tipPersoana, cui, numeFirma, regCom, adresa, judet, oras } = body;
+
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
 
-    // Creăm sesiunea de plată Stripe
+    // Construim metadata (atenție: Stripe acceptă doar string-uri simple, fără nested objects)
+    const metadata: any = {
+      email,
+      numeClient: tipPersoana === 'juridica' ? numeFirma : `${nume} ${prenume}`,
+      adresa,
+      judet,
+      oras,
+      tipPersoana,
+    };
+
+    if (tipPersoana === 'juridica') {
+      metadata.cif = cui;
+      metadata.regCom = regCom;
+    } else {
+        // Punem CNP opțional sau gol, Oblio cere uneori identificator pt PF
+        // Pentru simplitate lăsăm fără CNP obligatoriu momentan
+    }
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
+      customer_email: email, // Pre-populăm emailul în Stripe
       line_items: [
         {
           price_data: {
             currency: 'ron',
             product_data: {
               name: 'Curs Video AI: De la Zero la Expert',
-              description: 'Acces complet la curs + comunitate Discord',
-              images: ['https://images.unsplash.com/photo-1620712943543-bcc4688e7485?w=500'], 
+              description: 'Acces complet + Factură fiscală',
             },
-            unit_amount: 25000, // 250.00 RON
+            unit_amount: 25000, 
           },
           quantity: 1,
         },
       ],
+      metadata: metadata, // AICI SE STOCHEAZĂ DATELE PENTRU WEBHOOK
       mode: 'payment',
       success_url: `${baseUrl}/succes?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${baseUrl}`,
-      customer_email: undefined, 
+      cancel_url: `${baseUrl}/checkout`,
     });
 
     return NextResponse.json({ url: session.url });

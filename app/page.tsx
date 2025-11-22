@@ -1,34 +1,18 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 export default function Home() {
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
 
-  // Funcția care inițiază plata către Stripe
-  const handleCheckout = async () => {
+  // Funcția a fost modificată: Acum redirecționează către formularul de date
+  const handleCheckout = () => {
     setLoading(true);
-    try {
-      // Apelăm API-ul nostru intern
-      const response = await fetch('/api/checkout', {
-        method: 'POST',
-      });
-      const data = await response.json();
-      
-      if (data.url) {
-        // Redirecționăm utilizatorul către pagina de plată Stripe
-        window.location.href = data.url;
-      } else {
-        console.error('Nu s-a primit URL-ul de plată', data);
-        alert('A apărut o eroare la inițierea plății. Te rugăm să încerci din nou.');
-      }
-    } catch (error) {
-      console.error('Eroare fetch:', error);
-      alert('Eroare de conexiune. Verifică internetul și încearcă din nou.');
-    } finally {
-      setLoading(false);
-    }
+    // Redirecționăm către pagina unde colectăm datele pentru Oblio
+    router.push('/checkout');
   };
 
   return (
@@ -66,7 +50,7 @@ export default function Home() {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
-                  Se procesează...
+                  Se încarcă...
                 </span>
               ) : (
                 <>
@@ -82,7 +66,7 @@ export default function Home() {
             </Link>
           </div>
           <p className="mt-6 text-sm text-gray-500">
-            🔒 Plată securizată • Acces instant • Garanție 30 de zile
+            🔒 Plată securizată • Factură fiscală • Acces instant
           </p>
         </div>
       </section>
@@ -154,7 +138,6 @@ export default function Home() {
               </div>
             </div>
             <div className="relative rounded-2xl bg-gray-100 p-8 h-96 flex items-center justify-center shadow-inner">
-               {/* Placeholder pentru Demo Visual */}
                <div className="text-center">
                  <div className="mx-auto h-20 w-20 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 mb-4">
                    <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -293,7 +276,7 @@ export default function Home() {
             disabled={loading}
             className="inline-flex items-center justify-center px-10 py-4 text-xl font-bold rounded-full text-white bg-gray-900 hover:bg-black transition shadow-xl disabled:opacity-70"
           >
-            {loading ? 'Se procesează...' : 'Începe Cursul Acum'}
+            {loading ? 'Se încarcă...' : 'Începe Cursul Acum'}
           </button>
         </div>
       </section>
